@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+BASE_DIR = File.expand_path(File.dirname(__FILE__) + '/..')
+
+command = "gdb --batch -x #{BASE_DIR}/scripts/output_backtrace.gdb #{ARGV.join(' ')} 2>&1"
+IO.popen(command, 'r') do |io|
+  while line = io.gets
+    puts line
+  end
+end
