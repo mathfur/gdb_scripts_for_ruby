@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+BASE_DIR = File.expand_path(File.dirname(__FILE__) + '/..')
+
+command = "gdb --batch -x #{BASE_DIR}/scripts/output_called_method_names.gdb #{ARGV.join(' ')} 2>&1"
+IO.popen(command, 'r') do |io|
+  while line = io.gets
+    if line[/^0x[0-9a-f]+ "(.*)",([0-9,]+)$/]
+      puts "#$1,#$2"
+    end
+  end
+end
