@@ -2,9 +2,15 @@ Gdb Script for Ruby
 ===================
 Helper scripts written by gdb script.
  
-Usage
------
-Clone and give to gdb batch option.
+Install
+-------
+You need python-enable gdb, ruby builded debug mode.
+```shell
+git clone https://github.com/mathfur/gdb_scripts_for_ruby.git
+```
+```shell
+./bin/notice_load foo.rb
+```
 
 License
 -------

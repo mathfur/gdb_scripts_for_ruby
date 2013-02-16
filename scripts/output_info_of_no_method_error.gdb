@@ -11,4 +11,4 @@ commands
   continue
 end
 
-continue
+run

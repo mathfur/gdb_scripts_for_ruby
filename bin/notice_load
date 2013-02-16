@@ -2,11 +2,20 @@
 
 BASE_DIR = File.expand_path(File.dirname(__FILE__) + '/..')
 
-command = "gdb --batch -x #{BASE_DIR}/scripts/notice_load.gdb #{ARGV.join(' ')} 2>&1"
-IO.popen(command, 'r') do |io|
-  while line = io.gets
-    if line[/^>>\[rb_load_file\] *0x[0-9a-f]+ *"(.*)"$/]
-      puts $1
-    end
+command = "gdb --ex 'source #{BASE_DIR}/python_scripts/notice_load.py' --args ruby #{ARGV.join(' ')} 2>&1"
+
+io = IO.popen(command, 'r')
+
+while line = io.gets
+  if line[/^^>>\[rb_load_file\] *(.*)$/, 1]
+    puts $1
   end
+
+  if line =~ /^\[Inferior \d+ \(process \d+\) exited with code \d+\]$/
+    break
+  end
+  sleep 0.01
 end
+
+Process.kill('KILL', io.pid)
+io.close
