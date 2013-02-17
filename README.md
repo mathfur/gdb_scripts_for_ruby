@@ -9,7 +9,7 @@ You need python-enable gdb, ruby builded debug mode.
 git clone https://github.com/mathfur/gdb_scripts_for_ruby.git
 ```
 ```shell
-./bin/notice_load foo.rb
+gdb --ex 'source python_scripts/output_backtrace.py' --args ruby foo.rb
 ```
 
 License
