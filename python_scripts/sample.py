@@ -188,10 +188,10 @@ def have_valid_flags(value):
 #gdb.execute('run')
 #print_node(gdb.parse_and_eval('n'), 0)
 
-argc = gdb.parse_and_eval('argc')
-for i in range(argc):
-  value = gdb.parse_and_eval("argv[%d]" % i)
-  print "====="
-  print i
-  print get_ruby_object_type(value)
-  print get_class_name(value)
+#argc = gdb.parse_and_eval('argc')
+#for i in range(argc):
+#  value = gdb.parse_and_eval("argv[%d]" % i)
+#  print "====="
+#  print i
+#  print get_ruby_object_type(value)
+#  print get_class_name(value)
