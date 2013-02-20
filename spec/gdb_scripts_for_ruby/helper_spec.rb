@@ -65,7 +65,7 @@ APPEND_STATEMENT
     end
   end
 
-  describe '#print_value' do
+  describe '#inspect_value' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts('foo', :bar, 30, true, false, nil)
@@ -75,7 +75,7 @@ BREAK_STATMENT
   argc = gdb.parse_and_eval('argc')
   for i in range(argc):
     str = gdb.parse_and_eval("argv[%d]" % i)
-    print_value(str)
+    print inspect_value(str)
 APPEND_STATEMENT
 
      results[0].should == "'foo'"
@@ -87,7 +87,7 @@ APPEND_STATEMENT
     end
   end
 
-  describe '#print_string' do
+  describe '#inspect_string' do
     it 'when ELTS_SHARED flag is false' do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 print('foo', nil)
@@ -95,7 +95,7 @@ RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
   str = gdb.parse_and_eval("argv[0]")
-  print_string(str)
+  print inspect_string(str)
 APPEND_STATEMENT
 
      results[0].should == "'foo'"
@@ -111,14 +111,14 @@ RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
   str = gdb.parse_and_eval("argv[0]")
-  print_string(str)
+  print inspect_string(str)
 APPEND_STATEMENT
 
      results[0].should == "'foo'"
     end
   end
 
-  describe '#print_symbol' do
+  describe '#inspect_symbol' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(:foo, nil)
@@ -126,14 +126,14 @@ RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
   str = gdb.parse_and_eval("argv[0]")
-  print_symbol(str)
+  print inspect_symbol(str)
 APPEND_STATEMENT
 
       results[0].should == ':foo'
     end
   end
 
-  describe '#print_integer' do
+  describe '#inspect_integer' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(15, nil)
@@ -141,14 +141,14 @@ RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
   num = gdb.parse_and_eval("argv[0]")
-  print_integer(num)
+  print inspect_integer(num)
 APPEND_STATEMENT
 
       results[0].should == '15'
     end
   end
 
-  describe '#print_bool' do
+  describe '#inspect_bool' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(true, false, nil)
@@ -158,7 +158,7 @@ BREAK_STATMENT
   argc = gdb.parse_and_eval('argc')
   for i in range(argc):
     str = gdb.parse_and_eval("argv[%d]" % i)
-    print_bool(str)
+    print inspect_bool(str)
 APPEND_STATEMENT
 
       results[0].should == 'true'

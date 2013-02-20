@@ -186,46 +186,46 @@ def is_bool(value):
 def have_valid_flags(value):
   return not (is_bool(value) or is_symbol(value) or is_integer(value))
 
-def print_value(value):
+def inspect_value(value):
   if have_valid_klass(value):
     klass = get_class_name(value)
     if klass == 'String':
-      print_string(value)
+      return inspect_string(value)
     else:
-      print "(NA)"
+      return "(NA)"
   else:
     if is_integer(value):
-      print_integer(value)
+      return inspect_integer(value)
     elif is_symbol(value):
-      print_symbol(value)
+      return inspect_symbol(value)
     elif is_bool(value):
-      print_bool(value)
+      return inspect_bool(value)
     else:
-      print "(NA)"
+      return "(NA)"
 
-def print_string(value):
+def inspect_string(value):
   flags = value.cast(gdb.lookup_type('struct RBasic').pointer())['flags']
   elts_shared_flag = (flags >> 13) & 0x01
   if(elts_shared_flag == 1):
-    print_string(value.cast(gdb.lookup_type('struct RString').pointer())['aux']['shared'])
+    return inspect_string(value.cast(gdb.lookup_type('struct RString').pointer())['aux']['shared'])
   else:
-    print "'%s'" % value.cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()
+    return "'%s'" % value.cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()
 
-def print_symbol(value):
-  print ":%s" % callc('rb_id2name', (value >> 8)).string()
+def inspect_symbol(value):
+  return ":%s" % callc('rb_id2name', (value >> 8)).string()
 
-def print_integer(value):
-  print (value >> 1)
+def inspect_integer(value):
+  return (value >> 1)
 
-def print_bool(value):
+def inspect_bool(value):
   if is_true(value):
-    print 'true'
+    return 'true'
   elif is_false(value):
-    print 'false'
+    return 'false'
   elif is_nil(value):
-    print 'nil'
+    return 'nil'
   else:
-    print '(NA)'
+    return '(NA)'
 
 # == more abstract
 def callc(method_name, args):
