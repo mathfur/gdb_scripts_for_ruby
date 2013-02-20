@@ -169,7 +169,7 @@ def is_integer(value):
   return ((value % 2) == 1)
 
 def is_symbol(value):
-  return (((value >> 1) & 0x7) == 7)
+  return ((value & 0xFF) == 0x0E)
 
 def is_true(value):
   return (value == 2)
@@ -181,16 +181,22 @@ def is_nil(value):
   return (value == 4)
 
 def have_valid_flags(value):
-  return (value > 4) and not is_symbol(value)
+  return not (is_true(value) or is_false(value) or is_nil(value) or is_symbol(value) or is_integer(value))
 
 def print_value(value):
-  klass = get_class_name(value)
-  if is_symbol(value):
-    print_symbol(value)
-  elif klass == 'String':
-    print_string(value)
+  if have_valid_klass(value):
+    klass = get_class_name(value)
+    if klass == 'String':
+      print_string(value)
+    else:
+      print "(NA)"
   else:
-    print "(NA)"
+    if is_integer(value):
+      print_integer(value)
+    elif is_symbol(value):
+      print_symbol(value)
+    else:
+      print "(NA)"
 
 def print_string(value):
   flags = value.cast(gdb.lookup_type('struct RBasic').pointer())['flags']
@@ -203,6 +209,10 @@ def print_string(value):
 def print_symbol(value):
   print ":%s" % callc('rb_id2name', (value >> 8)).string()
 
+def print_integer(value):
+  print (value >> 1)
+
 # == more abstract
 def callc(method_name, args):
-  return gdb.parse_and_eval("%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)})
+  cmd = "%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)}
+  return gdb.parse_and_eval(cmd)
