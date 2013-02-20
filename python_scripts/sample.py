@@ -180,8 +180,11 @@ def is_false(value):
 def is_nil(value):
   return (value == 4)
 
+def is_bool(value):
+  return (is_true(value) or is_false(value) or is_nil(value))
+
 def have_valid_flags(value):
-  return not (is_true(value) or is_false(value) or is_nil(value) or is_symbol(value) or is_integer(value))
+  return not (is_bool(value) or is_symbol(value) or is_integer(value))
 
 def print_value(value):
   if have_valid_klass(value):
@@ -195,6 +198,8 @@ def print_value(value):
       print_integer(value)
     elif is_symbol(value):
       print_symbol(value)
+    elif is_bool(value):
+      print_bool(value)
     else:
       print "(NA)"
 
@@ -211,6 +216,16 @@ def print_symbol(value):
 
 def print_integer(value):
   print (value >> 1)
+
+def print_bool(value):
+  if is_true(value):
+    print 'true'
+  elif is_false(value):
+    print 'false'
+  elif is_nil(value):
+    print 'nil'
+  else:
+    print '(NA)'
 
 # == more abstract
 def callc(method_name, args):
