@@ -185,7 +185,9 @@ def have_valid_flags(value):
 
 def print_value(value):
   klass = get_class_name(value)
-  if klass == 'String':
+  if is_symbol(value):
+    print_symbol(value)
+  elif klass == 'String':
     print_string(value)
   else:
     print "(NA)"
@@ -197,3 +199,10 @@ def print_string(value):
     print_string(value.cast(gdb.lookup_type('struct RString').pointer())['aux']['shared'])
   else:
     print "'%s'" % value.cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()
+
+def print_symbol(value):
+  print ":%s" % callc('rb_id2name', (value >> 8)).string()
+
+# == more abstract
+def callc(method_name, args):
+  return gdb.parse_and_eval("%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)})

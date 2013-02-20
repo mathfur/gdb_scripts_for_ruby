@@ -68,15 +68,18 @@ APPEND_STATEMENT
   describe '#print_value' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
-puts('foo', nil)
+puts('foo', :bar)
 RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
-  str = gdb.parse_and_eval("argv[0]")
-  print_value(str)
+  argc = gdb.parse_and_eval('argc')
+  for i in range(argc):
+    str = gdb.parse_and_eval("argv[%d]" % i)
+    print_value(str)
 APPEND_STATEMENT
 
      results[0].should == "'foo'"
+     results[1].should == ":bar"
     end
   end
 
@@ -108,6 +111,21 @@ BREAK_STATMENT
 APPEND_STATEMENT
 
      results[0].should == "'foo'"
+    end
+  end
+
+  describe '#print_symbol' do
+    specify do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts(:foo, nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  str = gdb.parse_and_eval("argv[0]")
+  print_symbol(str)
+APPEND_STATEMENT
+
+      results[0].should == ':foo'
     end
   end
 
