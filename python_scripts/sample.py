@@ -183,15 +183,17 @@ def is_nil(value):
 def have_valid_flags(value):
   return (value > 4) and not is_symbol(value)
 
-#gdb.execute('break eval.c:2979')
-#gdb.execute('break eval.c:4183')
-#gdb.execute('run')
-#print_node(gdb.parse_and_eval('n'), 0)
+def print_value(value):
+  klass = get_class_name(value)
+  if klass == 'String':
+    print_string(value)
+  else:
+    print "(NA)"
 
-#argc = gdb.parse_and_eval('argc')
-#for i in range(argc):
-#  value = gdb.parse_and_eval("argv[%d]" % i)
-#  print "====="
-#  print i
-#  print get_ruby_object_type(value)
-#  print get_class_name(value)
+def print_string(value):
+  flags = value.cast(gdb.lookup_type('struct RBasic').pointer())['flags']
+  elts_shared_flag = (flags >> 13) & 0x01
+  if(elts_shared_flag == 1):
+    print_string(value.cast(gdb.lookup_type('struct RString').pointer())['aux']['shared'])
+  else:
+    print "'%s'" % value.cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()

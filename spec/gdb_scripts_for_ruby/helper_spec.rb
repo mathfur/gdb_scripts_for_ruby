@@ -65,6 +65,52 @@ APPEND_STATEMENT
     end
   end
 
+  describe '#print_value' do
+    specify do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts('foo', nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  str = gdb.parse_and_eval("argv[0]")
+  print_value(str)
+APPEND_STATEMENT
+
+     results[0].should == "'foo'"
+    end
+  end
+
+  describe '#print_string' do
+    it 'when ELTS_SHARED flag is false' do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+print('foo', nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  str = gdb.parse_and_eval("argv[0]")
+  print_string(str)
+APPEND_STATEMENT
+
+     results[0].should == "'foo'"
+    end
+
+    it 'when ELTS_SHARED flag is true' do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+9.times do |i|
+  x = 'foo'
+  p(x, nil)
+end
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  str = gdb.parse_and_eval("argv[0]")
+  print_string(str)
+APPEND_STATEMENT
+
+     results[0].should == "'foo'"
+    end
+  end
+
   def execute(src, break_statement, appending_src, python_fname)
     breaked_python_src = <<EOS
 #{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
@@ -92,9 +138,9 @@ EOS
     io = IO.popen(command, 'r')
     while line = io.gets
       test_output << line
-      #print line
+      #puts line
 
-      if line =~ /^\[Inferior \d+ \(process \d+\) exit/
+      if line =~ /\[Inferior \d+ \(process \d+\) exit/
         break
       end
     end
