@@ -192,7 +192,7 @@ def inspect_value(value):
     if klass == 'String':
       return inspect_string(value)
     else:
-      return "(NA)"
+      return "(NA klass)"
   else:
     if is_integer(value):
       return inspect_integer(value)
@@ -201,7 +201,7 @@ def inspect_value(value):
     elif is_bool(value):
       return inspect_bool(value)
     else:
-      return "(NA)"
+      return "(NA not klass)"
 
 def inspect_string(value):
   flags = value.cast(gdb.lookup_type('struct RBasic').pointer())['flags']
