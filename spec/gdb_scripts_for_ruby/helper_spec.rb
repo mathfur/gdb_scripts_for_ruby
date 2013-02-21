@@ -209,7 +209,11 @@ APPEND_STATEMENT
     end
   end
 
-  def execute(src, break_statement, appending_src, python_fname)
+  def execute(src, break_statements, appending_src, python_fname)
+    break_statements = break_statements.split("\n").map do |break_stat|
+      "gdb.execute('#{break_stat.strip}')"
+    end.join("\n")
+
     breaked_python_src = <<EOS
 #{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
 
@@ -220,7 +224,7 @@ def break_handler(event):
   gdb.execute('continue')
 
 gdb.events.stop.connect(break_handler)
-gdb.execute("#{break_statement.strip}")
+#{break_statements}
 gdb.execute('run')
 EOS
 
