@@ -184,6 +184,7 @@ def is_bool(value):
   return (is_true(value) or is_false(value) or is_nil(value))
 
 def have_valid_flags(value):
+  value = int(value.cast(gdb.lookup_type('int')))
   return not (is_bool(value) or is_symbol(value) or is_integer(value))
 
 def inspect_value(value):
@@ -215,7 +216,7 @@ def inspect_symbol(value):
   return ":%s" % callc('rb_id2name', (value >> 8)).string()
 
 def inspect_integer(value):
-  return (value >> 1)
+  return str(value >> 1)
 
 def inspect_bool(value):
   if is_true(value):
@@ -226,6 +227,11 @@ def inspect_bool(value):
     return 'nil'
   else:
     return '(NA)'
+
+def inspect_array(value):
+  arr = value.cast(gdb.lookup_type('struct RArray').pointer())
+  length = int(arr['len'])
+  return '[' + ', '.join(map((lambda i: inspect_value(arr['ptr'][i])), range(length))) + ']'
 
 # == more abstract
 def callc(method_name, args):

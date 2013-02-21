@@ -85,6 +85,19 @@ APPEND_STATEMENT
      results[4].should == "false"
      results[5].should == "nil"
     end
+
+    specify do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts(135, nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  x = gdb.parse_and_eval("argv[0]")
+  print inspect_value(x)
+APPEND_STATEMENT
+
+      results[0].should == "135"
+    end
   end
 
   describe '#inspect_string' do
@@ -167,10 +180,24 @@ APPEND_STATEMENT
     end
   end
 
+  describe '#inspect_array' do
+    specify do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts([:foo, 135, 'bar', nil, true, false], nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  x = gdb.parse_and_eval("argv[0]")
+  print inspect_array(x)
+APPEND_STATEMENT
+
+      results[0].should == "[:foo, 135, 'bar', nil, true, false]"
+    end
+  end
+
   def execute(src, break_statement, appending_src, python_fname)
     breaked_python_src = <<EOS
 #{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
-
 
 def break_handler(event):
   print "APPENDING_SRC_RESULT_START"
