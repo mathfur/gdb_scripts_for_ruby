@@ -192,6 +192,8 @@ def inspect_value(value):
     klass = get_class_name(value)
     if klass == 'String':
       return inspect_string(value)
+    elif klass == 'Array':
+      return inspect_array(value)
     else:
       return "(NA klass)"
   else:

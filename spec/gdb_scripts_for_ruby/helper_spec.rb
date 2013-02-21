@@ -68,7 +68,7 @@ APPEND_STATEMENT
   describe '#inspect_value' do
     specify do
       results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
-puts('foo', :bar, 30, true, false, nil)
+puts('foo', :bar, 30, true, false, nil, [1, 2])
 RB_SOURCE
 break rb_call if argc > 1
 BREAK_STATMENT
@@ -84,6 +84,7 @@ APPEND_STATEMENT
      results[3].should == "true"
      results[4].should == "false"
      results[5].should == "nil"
+     results[6].should == "[1, 2]"
     end
 
     specify do
@@ -192,6 +193,19 @@ BREAK_STATMENT
 APPEND_STATEMENT
 
       results[0].should == "[:foo, 135, 'bar', nil, true, false]"
+    end
+
+    specify do
+      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts([[12, 34], 56], nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  x = gdb.parse_and_eval("argv[0]")
+  print inspect_array(x)
+APPEND_STATEMENT
+
+      results[0].should == "[[12, 34], 56]"
     end
   end
 
