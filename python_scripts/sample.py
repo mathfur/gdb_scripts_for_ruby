@@ -130,12 +130,12 @@ def print_node(node, indent):
 
 def get_class_name(value):
   if have_valid_flags(value):
-    basic = value.cast(gdb.lookup_type('struct RBasic').pointer())
-    return gdb.parse_and_eval("rb_class_path(%d)" % basic['klass']).cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()
+    basic = cast(value, 'struct RBasic', True)
+    return cast(gdb.parse_and_eval("rb_class_path(%d)" % basic['klass']), 'struct RString', True)['ptr'].string()
 
 def get_ruby_object_type(value):
   if have_valid_flags(value):
-    return value.cast(gdb.lookup_type('struct RBasic').pointer())['flags'] & 0x3f
+    return cast(value, 'struct RBasic', True)['flags'] & 0x3f
 
 def have_valid_klass(value):
   return get_ruby_object_type(value)
@@ -184,7 +184,7 @@ def is_bool(value):
   return (is_true(value) or is_false(value) or is_nil(value))
 
 def have_valid_flags(value):
-  value = int(value.cast(gdb.lookup_type('int')))
+  value = int(cast(value, 'int'))
   return not (is_bool(value) or is_symbol(value) or is_integer(value))
 
 def inspect_value(value):
@@ -207,12 +207,12 @@ def inspect_value(value):
       return "(NA not klass)"
 
 def inspect_string(value):
-  flags = value.cast(gdb.lookup_type('struct RBasic').pointer())['flags']
+  flags = cast(value, 'struct RBasic', True)['flags']
   elts_shared_flag = (flags >> 13) & 0x01
   if(elts_shared_flag == 1):
-    return inspect_string(value.cast(gdb.lookup_type('struct RString').pointer())['aux']['shared'])
+    return inspect_string(cast(value, 'struct RString', True)['aux']['shared'])
   else:
-    return "'%s'" % value.cast(gdb.lookup_type('struct RString').pointer())['ptr'].string()
+    return "'%s'" % cast(value, 'struct RString', True)['ptr'].string()
 
 def inspect_symbol(value):
   return ":%s" % callc('rb_id2name', (value >> 8)).string()
@@ -231,7 +231,7 @@ def inspect_bool(value):
     return '(NA)'
 
 def inspect_array(value):
-  arr = value.cast(gdb.lookup_type('struct RArray').pointer())
+  arr = cast(value, 'struct RArray', True)
   length = int(arr['len'])
   return '[' + ', '.join(map((lambda i: inspect_value(arr['ptr'][i])), range(length))) + ']'
 
@@ -239,3 +239,9 @@ def inspect_array(value):
 def callc(method_name, args):
   cmd = "%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)}
   return gdb.parse_and_eval(cmd)
+
+def cast(value, typ, pointer=False):
+  if pointer:
+    return value.cast(gdb.lookup_type(typ).pointer())
+  else:
+    return value.cast(gdb.lookup_type(typ))
