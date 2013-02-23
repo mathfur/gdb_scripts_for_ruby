@@ -5,7 +5,7 @@ require "spec_helper"
 describe "helper.py" do
   describe '#get_class_name' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -36,7 +36,7 @@ APPEND_STATEMENT
 
   describe '#get_ruby_object_type' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -67,7 +67,7 @@ APPEND_STATEMENT
 
   describe '#inspect_value' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts('foo', :bar, 30, true, false, nil, [1, 2])
 RB_SOURCE
 break rb_call if argc > 1
@@ -88,7 +88,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(135, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -103,7 +103,7 @@ APPEND_STATEMENT
 
   describe '#inspect_string' do
     it 'when ELTS_SHARED flag is false' do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 print('foo', nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -116,7 +116,7 @@ APPEND_STATEMENT
     end
 
     it 'when ELTS_SHARED flag is true' do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 9.times do |i|
   x = 'foo'
   p(x, nil)
@@ -134,7 +134,7 @@ APPEND_STATEMENT
 
   describe '#inspect_symbol' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(:foo, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -149,7 +149,7 @@ APPEND_STATEMENT
 
   describe '#inspect_integer' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(15, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -164,7 +164,7 @@ APPEND_STATEMENT
 
   describe '#inspect_bool' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(true, false, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -183,7 +183,7 @@ APPEND_STATEMENT
 
   describe '#inspect_array' do
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts([:foo, 135, 'bar', nil, true, false], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -196,7 +196,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts([[12, 34], 56], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -209,12 +209,147 @@ APPEND_STATEMENT
     end
   end
 
-  def execute(src, break_statements, appending_src, python_fname)
+  describe '#have_valid_flags' do
+    specify do
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+puts(nil, 3, :foo, [], "foo", {},  nil)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  for i in range(6):
+    x = gdb.parse_and_eval("argv[%d]" % i)
+    print have_valid_flags(x)
+APPEND_STATEMENT
+
+      results[0].should == "False"
+      results[1].should == "False"
+      results[2].should == "False"
+      results[3].should == "True"
+      results[4].should == "True"
+      results[5].should == "True"
+    end
+  end
+
+  describe '#get_node_type' do
+    specify do
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+if true
+else
+end
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  print get_node_type(node)
+APPEND_STATEMENT
+
+      results.should be_include('NODE_NEWLINE')
+      results.should be_include('NODE_TRUE')
+      results.should be_include('NODE_IF')
+    end
+
+    specify do
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+i = 0
+while i < 3
+  i += 1
+  puts i
+end
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  print get_node_type(node)
+APPEND_STATEMENT
+
+      results.should be_include('NODE_NEWLINE')
+
+      results.should be_include('NODE_WHILE')
+      results.should be_include('NODE_BLOCK')
+
+      results.should be_include('NODE_LIT')
+      results.should be_include('NODE_LASGN')
+      results.should be_include('NODE_LVAR')
+      results.should be_include('NODE_CALL')
+      results.should be_include('NODE_FCALL')
+      results.length.should == 8
+    end
+
+    specify do
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+class Foo
+end
+Foo.new
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  print get_node_type(node)
+APPEND_STATEMENT
+
+      results.should be_include('NODE_NEWLINE')
+
+      results.should be_include('NODE_CLASS')
+      results.should be_include('NODE_BLOCK')
+
+      results.should be_include('NODE_CONST')
+      results.should be_include('NODE_CALL')
+    end
+  end
+
+  describe '#enhance_method_missing' do
+    specify do
+      output = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'sample.py')
+arr1 = [1, 2, 3]
+arr2 = [4, 5, 6]
+arr3 = nil
+p arr1.sort + arr2.sort + arr3.sort
+RB_SOURCE
+enhance_method_missing()
+gdb.execute('run')
+BREAK_STATMENT
+
+      output.should =~ /type.*NODE_CALL/
+    end
+  end
+
+  describe '#inspect_node' do
+    specify do
+      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+puts(10)
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  if get_node_type(node) == 'NODE_FCALL':
+    pp = pprint.PrettyPrinter(2)
+    pp.pprint(inspect_node(node))
+APPEND_STATEMENT
+
+      require "json"
+      results = JSON.parse(results.join("\n").gsub(/u?'/){ '"' })
+      results['u3']['node']['u1']['node']['u1']['value'].should == "10"
+    end
+  end
+
+  def breaked_python_src
+    <<-EOS
+#{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
+
+#{statement2}
+    EOS
+  end
+
+  def execute_with_brake(src, break_statements, appending_src, python_fname, options={})
     break_statements = break_statements.split("\n").map do |break_stat|
       "gdb.execute('#{break_stat.strip}')"
     end.join("\n")
 
-    breaked_python_src = <<EOS
+    breaked_python_src = <<-EOS
 #{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
 
 def break_handler(event):
@@ -226,8 +361,22 @@ def break_handler(event):
 gdb.events.stop.connect(break_handler)
 #{break_statements}
 gdb.execute('run')
-EOS
+    EOS
 
+    execute0(src, breaked_python_src, python_fname, options)
+  end
+
+  def execute_plain(src, break_statement, python_fname, options={})
+    breaked_python_src = <<-EOS
+#{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
+
+#{break_statement}
+    EOS
+
+    execute0(src, breaked_python_src, python_fname, options.merge(:all => true))
+  end
+
+  def execute0(src, breaked_python_src, python_fname, options={})
     target_fname = "#{BASE_DIR}/tmp/test_target.rb"
     python_script = "#{BASE_DIR}/tmp/test_target.py"
     open(target_fname, 'w'){|f| f.write src }
@@ -249,6 +398,12 @@ EOS
     Process.kill('KILL', io.pid)
     io.close
 
-    (test_output.join[/APPENDING_SRC_RESULT_START(.*?)APPENDING_SRC_RESULT_END/m, 1] || '').strip.split(/\n/)
+    if options[:multiple]
+      test_output.join.scan(/APPENDING_SRC_RESULT_START(.*?)APPENDING_SRC_RESULT_END/m).flatten.map(&:strip).sort.uniq
+    elsif options[:all]
+      test_output.join
+    else
+      (test_output.join[/APPENDING_SRC_RESULT_START(.*?)APPENDING_SRC_RESULT_END/m, 1] || '').strip.split(/\n/)
+    end
   end
 end
