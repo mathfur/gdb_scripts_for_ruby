@@ -131,7 +131,10 @@ def print_node(node, indent):
 def get_class_name(value):
   if have_valid_flags(value):
     basic = cast(value, 'struct RBasic', True)
-    return cast(gdb.parse_and_eval("rb_class_path(%d)" % basic['klass']), 'struct RString', True)['ptr'].string()
+    if (basic['flags'] & 0x3F == t_node):
+      return '(NODE)'
+    else:
+      return cast(gdb.parse_and_eval("rb_class_path(%d)" % basic['klass']), 'struct RString', True)['ptr'].string()
 
 def get_ruby_object_type(value):
   if have_valid_flags(value):
@@ -160,6 +163,7 @@ t_false = 0x21
 t_data = 0x22
 t_match = 0x23
 t_symbol = 0x24
+t_node = 0x3f
 
 types_with_klass = [t_none, t_nil, t_object, t_class, t_iclass, t_module,
     t_float, t_string, t_regexp, t_array, t_fixnum, t_hash, t_struct,
