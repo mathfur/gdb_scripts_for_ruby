@@ -1,4 +1,5 @@
 import gdb
+import pprint
 
 #=========================== helper module
 available_children = [
@@ -264,8 +265,8 @@ def inspect_array(value):
   return '[' + ', '.join(map((lambda i: inspect_value(arr['ptr'][i])), range(length))) + ']'
 
 def enhance_method_missing():
-  pp = pprint.PrettyPrinter(2)
   def break_handler(event):
+    pp = pprint.PrettyPrinter(2)
     while (gdb.selected_frame().name() != 'rb_eval'):
       gdb.execute('up')
     node = gdb.parse_and_eval('node')
@@ -273,6 +274,19 @@ def enhance_method_missing():
     gdb.execute('continue')
   gdb.events.stop.connect(break_handler)
   gdb.execute('break rb_method_missing')
+
+def observe_call(klass_name):
+  def handler(event):
+    recv = gdb.parse_and_eval('recv')
+    mid  = gdb.parse_and_eval('mid')
+    argc = gdb.parse_and_eval('argc')
+    argv = gdb.parse_and_eval('argv')
+    if get_class_name(recv) == klass_name:
+      args = map((lambda i: inspect_value(argv[i])), range(int(argc)))
+      print "%s#%s(%s)" % (inspect_value(recv), id2name(mid), ', '.join(args))
+    gdb.execute('continue')
+  gdb.events.stop.connect(handler)
+  gdb.execute('break rb_call')
 
 # == more abstract
 def callc(method_name, args):

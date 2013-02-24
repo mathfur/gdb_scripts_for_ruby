@@ -5,7 +5,7 @@ require "spec_helper"
 describe "helper.py" do
   describe '#get_class_name' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -36,7 +36,7 @@ APPEND_STATEMENT
 
   describe '#get_ruby_object_type' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -67,7 +67,7 @@ APPEND_STATEMENT
 
   describe '#inspect_value' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts('foo', :bar, 30, true, false, nil, [1, 2])
 RB_SOURCE
 break rb_call if argc > 1
@@ -88,7 +88,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(135, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -103,7 +103,7 @@ APPEND_STATEMENT
 
   describe '#inspect_string' do
     it 'when ELTS_SHARED flag is false' do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 print('foo', nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -116,7 +116,7 @@ APPEND_STATEMENT
     end
 
     it 'when ELTS_SHARED flag is true' do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 9.times do |i|
   x = 'foo'
   p(x, nil)
@@ -134,7 +134,7 @@ APPEND_STATEMENT
 
   describe '#inspect_symbol' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(:foo, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -149,7 +149,7 @@ APPEND_STATEMENT
 
   describe '#inspect_integer' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(15, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -164,7 +164,7 @@ APPEND_STATEMENT
 
   describe '#inspect_bool' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(true, false, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -183,7 +183,7 @@ APPEND_STATEMENT
 
   describe '#inspect_array' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts([:foo, 135, 'bar', nil, true, false], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -196,7 +196,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts([[12, 34], 56], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -211,7 +211,7 @@ APPEND_STATEMENT
 
   describe '#have_valid_flags' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
 puts(nil, 3, :foo, [], "foo", {},  nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -232,7 +232,7 @@ APPEND_STATEMENT
 
   describe '#get_node_type' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
 if true
 else
 end
@@ -250,7 +250,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
 i = 0
 while i < 3
   i += 1
@@ -278,7 +278,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
 class Foo
 end
 Foo.new
@@ -318,7 +318,7 @@ BREAK_STATMENT
 
   describe '#inspect_node' do
     specify do
-      results = execute_with_brake(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
 puts(10)
 RB_SOURCE
 break eval.c:2979
@@ -336,15 +336,29 @@ APPEND_STATEMENT
     end
   end
 
-  def breaked_python_src
-    <<-EOS
-#{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
+  describe '#observe_call' do
+    specify do
+      results = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'sample.py')
+puts "123".to_i
+{:x => 10, :y => 20}.merge({})
+{:x => 10, :y => 20}.values_at(:x, :y)
+{}.inspect
+puts 123.to_s
+RB_SOURCE
+observe_call('Hash')
+gdb.execute('run')
+BREAK_STATMENT
 
-#{statement2}
-    EOS
+      results = results.split(/\n/)
+      results.find{|r| r =~ /to_i/}.should be_false
+      results.find{|r| r =~ /merge/}.should be_true
+      results.find{|r| r =~ /values_at.*:x.*:y/}.should be_true
+      results.find{|r| r =~ /inspect\(\)/}.should be_true
+      results.find{|r| r =~ /to_s/}.should be_false
+    end
   end
 
-  def execute_with_brake(src, break_statements, appending_src, python_fname, options={})
+  def execute_with_break(src, break_statements, appending_src, python_fname, options={})
     break_statements = break_statements.split("\n").map do |break_stat|
       "gdb.execute('#{break_stat.strip}')"
     end.join("\n")
