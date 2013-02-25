@@ -110,6 +110,13 @@ available_children = [
   ('NODE_LAST', []),
 ]
 
+# === about node ==========================
+def line_num(node):
+  if node:
+    return ((node['flags'] >> 19) & 0xFFF)
+  else:
+    return None
+
 def get_node_type(node):
   if node:
     return map((lambda e: e[0]), available_children)[get_node_type_integer(node)]
@@ -121,13 +128,6 @@ def get_node_type_integer(node):
     return (int(node['flags']) >> 11) & 0xFF
   else:
     return None
-
-def find(elem, whole):
-  arr = filter((lambda t: t[0] == elem), whole)
-  if arr:
-    return arr[0][1]
-  else:
-    return []
 
 def inspect_node(node):
   node_type = get_node_type(node)
@@ -152,6 +152,15 @@ def inspect_node(node):
       r = '(EREOR)'
     result[key][category] = r
   return result
+
+# ===============================================
+
+def find(elem, whole):
+  arr = filter((lambda t: t[0] == elem), whole)
+  if arr:
+    return arr[0][1]
+  else:
+    return []
 
 def get_class_name(value):
   if have_valid_flags(value):
@@ -287,6 +296,24 @@ def observe_call(klass_name):
     gdb.execute('continue')
   gdb.events.stop.connect(handler)
   gdb.execute('break rb_call')
+
+def observe_load():
+  def handler(event):
+    print ">>[rb_load_file] "+gdb.parse_and_eval("fname").string()
+    gdb.execute('continue')
+  gdb.events.stop.connect(handler)
+  gdb.Breakpoint("rb_load_file")
+
+def print_ruby_frame(origin_frame=None):
+  origin_frame = origin_frame or gdb.parse_and_eval("ruby_frame")
+  if origin_frame['prev'] != 0 and origin_frame['prev']['last_func'] != 0:
+    caller_info = {
+        'fname': origin_frame['node']['nd_file'].string(),
+        'method_name': gdb.parse_and_eval("rb_id2name(%d)" % origin_frame['prev']['last_func']).string(),
+        'num': line_num(origin_frame['node'])
+    }
+    print "%(fname)s:%(num)d:in `%(method_name)s`" % caller_info
+    print_ruby_frame(origin_frame['prev'])
 
 # == more abstract
 def callc(method_name, args):

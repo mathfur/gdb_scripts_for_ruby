@@ -1,15 +1,23 @@
 Gdb Script for Ruby
 ===================
-Helper scripts written by gdb script.
+Python-gdb methods for debugging ruby.
  
 Install
 -------
-You need python-enable gdb, ruby builded debug mode.
+You need the following.
+ * python-enabled gdb ( If you use MAC, then the gdb might be needed codesign ).
+ * debug-builded ruby ( 1.8.7 is checked only ).
+ * git clone https://github.com/mathfur/gdb_scripts_for_ruby.git
+
+If you want to debug foo.rb, then
 ```shell
-git clone https://github.com/mathfur/gdb_scripts_for_ruby.git
+gdb --ex 'source scripts/helper.py' --args ruby foo.rb
 ```
-```shell
-gdb --ex 'source python_scripts/output_backtrace.py' --args ruby foo.rb
+
+If you want to add more information to method missing, then
+```
+gdb) python enhance_method_missing()
+gdb) run
 ```
 
 License

@@ -5,7 +5,7 @@ require "spec_helper"
 describe "helper.py" do
   describe '#get_class_name' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -36,7 +36,7 @@ APPEND_STATEMENT
 
   describe '#get_ruby_object_type' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 obj = Object.new
 klass = Class.new
 pr = Proc.new { }
@@ -67,7 +67,7 @@ APPEND_STATEMENT
 
   describe '#inspect_value' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts('foo', :bar, 30, true, false, nil, [1, 2])
 RB_SOURCE
 break rb_call if argc > 1
@@ -88,7 +88,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts(135, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -103,7 +103,7 @@ APPEND_STATEMENT
 
   describe '#inspect_string' do
     it 'when ELTS_SHARED flag is false' do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 print('foo', nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -116,7 +116,7 @@ APPEND_STATEMENT
     end
 
     it 'when ELTS_SHARED flag is true' do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 9.times do |i|
   x = 'foo'
   p(x, nil)
@@ -134,7 +134,7 @@ APPEND_STATEMENT
 
   describe '#inspect_symbol' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts(:foo, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -149,7 +149,7 @@ APPEND_STATEMENT
 
   describe '#inspect_integer' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts(15, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -164,7 +164,7 @@ APPEND_STATEMENT
 
   describe '#inspect_bool' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts(true, false, nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -183,7 +183,7 @@ APPEND_STATEMENT
 
   describe '#inspect_array' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts([:foo, 135, 'bar', nil, true, false], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -196,7 +196,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts([[12, 34], 56], nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -211,7 +211,7 @@ APPEND_STATEMENT
 
   describe '#have_valid_flags' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py')
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
 puts(nil, 3, :foo, [], "foo", {},  nil)
 RB_SOURCE
 break rb_call if argc > 1
@@ -232,7 +232,7 @@ APPEND_STATEMENT
 
   describe '#get_node_type' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
 if true
 else
 end
@@ -250,7 +250,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
 i = 0
 while i < 3
   i += 1
@@ -278,7 +278,7 @@ APPEND_STATEMENT
     end
 
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
 class Foo
 end
 Foo.new
@@ -302,7 +302,7 @@ APPEND_STATEMENT
 
   describe '#enhance_method_missing' do
     specify do
-      output = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'sample.py')
+      output = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'helper.py')
 arr1 = [1, 2, 3]
 arr2 = [4, 5, 6]
 arr3 = nil
@@ -318,7 +318,7 @@ BREAK_STATMENT
 
   describe '#inspect_node' do
     specify do
-      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'sample.py', :multiple => true)
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
 puts(10)
 RB_SOURCE
 break eval.c:2979
@@ -338,7 +338,7 @@ APPEND_STATEMENT
 
   describe '#observe_call' do
     specify do
-      results = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'sample.py')
+      results = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'helper.py')
 puts "123".to_i
 {:x => 10, :y => 20}.merge({})
 {:x => 10, :y => 20}.values_at(:x, :y)
@@ -364,7 +364,7 @@ BREAK_STATMENT
     end.join("\n")
 
     breaked_python_src = <<-EOS
-#{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
+#{File.read("#{BASE_DIR}/scripts/#{python_fname}")}
 
 def break_handler(event):
   print "APPENDING_SRC_RESULT_START"
@@ -382,7 +382,7 @@ gdb.execute('run')
 
   def execute_plain(src, break_statement, python_fname, options={})
     breaked_python_src = <<-EOS
-#{File.read("#{BASE_DIR}/python_scripts/#{python_fname}")}
+#{File.read("#{BASE_DIR}/scripts/#{python_fname}")}
 
 #{break_statement}
     EOS
