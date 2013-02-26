@@ -358,6 +358,33 @@ APPEND_STATEMENT
     end
   end
 
+  describe '#get_node_by_xml' do
+    specify do
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
+if true
+  puts(10)
+else
+  1 + 3
+end
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  if get_node_type(node) == 'NODE_FCALL':
+    print get_node_by_xml(node)
+APPEND_STATEMENT
+
+      require "rexml/document"
+      doc = REXML::Document.new results.join("\n")
+      REXML::XPath.first(doc, "//type[text()='NODE_FCALL']").should be_true
+      REXML::XPath.first(doc, "//type[text()='NODE_IF']").should be_false
+      REXML::XPath.first(doc, "//type[text()='NODE_ARRAY']").should be_true
+      REXML::XPath.first(doc, "//type[text()='NODE_LIT']").should be_true
+      REXML::XPath.first(doc, "//node[@value='10']").should be_true
+    end
+  end
+
   describe '#observe_call' do
     specify do
       results = execute_plain(<<RB_SOURCE, <<BREAK_STATMENT, 'helper.py')

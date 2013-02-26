@@ -153,6 +153,33 @@ def inspect_node(node):
     result[key][category] = r
   return result
 
+def to_xml(dic):
+  def wrap_tag(name, dic):
+    return "<%(name)s %(attrs)s>%(inner)s</%(name)s>" % {'name': name, 'inner': dic[name], 'attrs': dic.get('attrs', '')}
+  if type(dic) == dict:
+    converted_dic = {
+      'type': dic.get('node', {}).get('type', ''),
+      'u1': to_xml(dic.get('node', {}).get('u1', '')),
+      'u2': to_xml(dic.get('node', {}).get('u2', '')),
+      'u3': to_xml(dic.get('node', {}).get('u3', '')),
+      'value': dic.get('value', '')
+    }
+    inner = ''
+    for name in ['type', 'u1', 'u2', 'u3']:
+      if converted_dic['type']:
+        inner = inner + wrap_tag(name, converted_dic)
+
+    if inner == '' and converted_dic['value'] == '':
+      return ''
+    else:
+      return "<node value='%(value)s'>%(inner)s</node>" % {'value': converted_dic['value'], 'inner': inner}
+  else:
+    return str(dic)
+
+def get_node_by_xml(node):
+  dic = inspect_node(node)
+  return to_xml({'node': dic})
+
 # ===============================================
 
 def current_node():
