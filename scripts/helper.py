@@ -113,7 +113,7 @@ available_children = [
 # === about node ==========================
 def line_num(node):
   if node:
-    return ((node['flags'] >> 19) & 0xFFF)
+    return ((int(node['flags']) >> 19) & 0xFFF)
   else:
     return None
 
@@ -154,6 +154,15 @@ def inspect_node(node):
   return result
 
 # ===============================================
+
+def current_node():
+  return gdb.parse_and_eval('ruby_current_node')
+
+def current_line():
+  return line_num(current_node())
+
+def current_fname():
+  return gdb.parse_and_eval('ruby_current_node.nd_file').string()
 
 def find(elem, whole):
   arr = filter((lambda t: t[0] == elem), whole)
@@ -304,17 +313,30 @@ def observe_load():
   gdb.events.stop.connect(handler)
   gdb.Breakpoint("rb_load_file")
 
-def print_ruby_frame(origin_frame=None):
-  origin_frame = origin_frame or gdb.parse_and_eval("ruby_frame")
-  if origin_frame['prev'] != 0 and origin_frame['prev']['last_func'] != 0:
-    caller_info = {
-        'fname': origin_frame['node']['nd_file'].string(),
-        'method_name': gdb.parse_and_eval("rb_id2name(%d)" % origin_frame['prev']['last_func']).string(),
-        'num': line_num(origin_frame['node'])
-    }
-    print "%(fname)s:%(num)d:in `%(method_name)s`" % caller_info
-    print_ruby_frame(origin_frame['prev'])
+def get_backtrace(origin_frame=None):
+  if origin_frame:
+    results = []
+  else:
+    origin_frame = gdb.parse_and_eval("ruby_frame")
+    method_name = (origin_frame['last_func'] and id2name(origin_frame['last_func'])) or ''
+    results = [(current_fname(), current_line(), method_name)]
+  prev = origin_frame['prev']
+  if prev != 0:
+    node = origin_frame['node']
+    method_name = (prev['last_func'] and id2name(prev['last_func'])) or ''
+    results.extend([(node['nd_file'].string(), line_num(node), method_name)])
+    results.extend(get_backtrace(prev))
+  return results
 
+def print_backtrace():
+  backtraces = get_backtrace()
+  for (fname, line_num, method_name) in backtraces:
+    if method_name:
+      method_name_ = 'in `%s`' % method_name
+    else:
+      method_name_ = ''
+    print "%s:%d:%s" % (fname, line_num, method_name_)
+ 
 # == more abstract
 def callc(method_name, args):
   cmd = "%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)}
