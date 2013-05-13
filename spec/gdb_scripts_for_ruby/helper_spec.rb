@@ -316,6 +316,28 @@ BREAK_STATMENT
     end
   end
 
+  describe '#print_backtrace' do
+    specify do
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
+def bar
+  puts(1, 2)
+end
+def foo
+  bar
+end
+foo
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  print_backtrace()
+APPEND_STATEMENT
+
+      results.should be_any{|line| line =~ /test_target\.rb:2:in `bar`$/}
+      results.should be_any{|line| line =~ /test_target\.rb:5:in `foo`$/}
+      results.should be_any{|line| line =~ /test_target.rb:7:$/}
+    end
+  end
+
   describe '#inspect_node' do
     specify do
       results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
@@ -333,6 +355,33 @@ APPEND_STATEMENT
       require "json"
       results = JSON.parse(results.join("\n").gsub(/u?'/){ '"' })
       results['u3']['node']['u1']['node']['u1']['value'].should == "10"
+    end
+  end
+
+  describe '#get_node_by_xml' do
+    specify do
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py', :multiple => true)
+if true
+  puts(10)
+else
+  1 + 3
+end
+RB_SOURCE
+break eval.c:2979
+break eval.c:4183
+BREAK_STATMENT
+  node = gdb.parse_and_eval('node')
+  if get_node_type(node) == 'NODE_FCALL':
+    print get_node_by_xml(node)
+APPEND_STATEMENT
+
+      require "rexml/document"
+      doc = REXML::Document.new results.join("\n")
+      REXML::XPath.first(doc, "//type[text()='NODE_FCALL']").should be_true
+      REXML::XPath.first(doc, "//type[text()='NODE_IF']").should be_false
+      REXML::XPath.first(doc, "//type[text()='NODE_ARRAY']").should be_true
+      REXML::XPath.first(doc, "//type[text()='NODE_LIT']").should be_true
+      REXML::XPath.first(doc, "//node[@value='10']").should be_true
     end
   end
 
@@ -355,6 +404,40 @@ BREAK_STATMENT
       results.find{|r| r =~ /values_at.*:x.*:y/}.should be_true
       results.find{|r| r =~ /inspect\(\)/}.should be_true
       results.find{|r| r =~ /to_s/}.should be_false
+    end
+  end
+
+  describe '#current_line' do
+    specify do
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
+def bar
+  puts(1, 2)
+end
+def foo
+  bar
+end
+foo
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  print "current_line = %d;" % current_line()
+APPEND_STATEMENT
+
+      results.should be_include("current_line = 2;")
+    end
+  end
+
+  describe '#current_fname' do
+    specify do
+      results = execute_with_break(<<RB_SOURCE, <<BREAK_STATMENT, <<APPEND_STATEMENT, 'helper.py')
+puts(1, 2, 3)
+RB_SOURCE
+break rb_call if argc > 1
+BREAK_STATMENT
+  print "current_fname = %s;" % current_fname()
+APPEND_STATEMENT
+
+      results.should be_any{|line| line =~ /current_fname = .*test_target\.rb;/}
     end
   end
 

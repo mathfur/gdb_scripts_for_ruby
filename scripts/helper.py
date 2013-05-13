@@ -113,7 +113,7 @@ available_children = [
 # === about node ==========================
 def line_num(node):
   if node:
-    return ((node['flags'] >> 19) & 0xFFF)
+    return ((int(node['flags']) >> 19) & 0xFFF)
   else:
     return None
 
@@ -153,7 +153,43 @@ def inspect_node(node):
     result[key][category] = r
   return result
 
+def to_xml(dic):
+  def wrap_tag(name, dic):
+    return "<%(name)s %(attrs)s>%(inner)s</%(name)s>" % {'name': name, 'inner': dic[name], 'attrs': dic.get('attrs', '')}
+  if type(dic) == dict:
+    converted_dic = {
+      'type': dic.get('node', {}).get('type', ''),
+      'u1': to_xml(dic.get('node', {}).get('u1', '')),
+      'u2': to_xml(dic.get('node', {}).get('u2', '')),
+      'u3': to_xml(dic.get('node', {}).get('u3', '')),
+      'value': dic.get('value', '')
+    }
+    inner = ''
+    for name in ['type', 'u1', 'u2', 'u3']:
+      if converted_dic['type']:
+        inner = inner + wrap_tag(name, converted_dic)
+
+    if inner == '' and converted_dic['value'] == '':
+      return ''
+    else:
+      return "<node value='%(value)s'>%(inner)s</node>" % {'value': converted_dic['value'], 'inner': inner}
+  else:
+    return str(dic)
+
+def get_node_by_xml(node):
+  dic = inspect_node(node)
+  return to_xml({'node': dic})
+
 # ===============================================
+
+def current_node():
+  return gdb.parse_and_eval('ruby_current_node')
+
+def current_line():
+  return line_num(current_node())
+
+def current_fname():
+  return gdb.parse_and_eval('ruby_current_node.nd_file').string()
 
 def find(elem, whole):
   arr = filter((lambda t: t[0] == elem), whole)
@@ -304,17 +340,30 @@ def observe_load():
   gdb.events.stop.connect(handler)
   gdb.Breakpoint("rb_load_file")
 
-def print_ruby_frame(origin_frame=None):
-  origin_frame = origin_frame or gdb.parse_and_eval("ruby_frame")
-  if origin_frame['prev'] != 0 and origin_frame['prev']['last_func'] != 0:
-    caller_info = {
-        'fname': origin_frame['node']['nd_file'].string(),
-        'method_name': gdb.parse_and_eval("rb_id2name(%d)" % origin_frame['prev']['last_func']).string(),
-        'num': line_num(origin_frame['node'])
-    }
-    print "%(fname)s:%(num)d:in `%(method_name)s`" % caller_info
-    print_ruby_frame(origin_frame['prev'])
+def get_backtrace(origin_frame=None):
+  if origin_frame:
+    results = []
+  else:
+    origin_frame = gdb.parse_and_eval("ruby_frame")
+    method_name = (origin_frame['last_func'] and id2name(origin_frame['last_func'])) or ''
+    results = [(current_fname(), current_line(), method_name)]
+  prev = origin_frame['prev']
+  if prev != 0:
+    node = origin_frame['node']
+    method_name = (prev['last_func'] and id2name(prev['last_func'])) or ''
+    results.extend([(node['nd_file'].string(), line_num(node), method_name)])
+    results.extend(get_backtrace(prev))
+  return results
 
+def print_backtrace():
+  backtraces = get_backtrace()
+  for (fname, line_num, method_name) in backtraces:
+    if method_name:
+      method_name_ = 'in `%s`' % method_name
+    else:
+      method_name_ = ''
+    print "%s:%d:%s" % (fname, line_num, method_name_)
+ 
 # == more abstract
 def callc(method_name, args):
   cmd = "%(method_name)s(%(args)s)" % {'method_name': method_name, 'args': str(args)}
